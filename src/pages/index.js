@@ -29,7 +29,10 @@ export default function Home() {
       if (
         ["COMPLETED", "FAILED", "TERMINATED"].includes(workflowStatus.status)
       ) {
-        console.log(workflowStatus);
+        if (workflowStatus.status === "COMPLETED") {
+          console.log("***********Processed Names*******************")
+          console.log(workflowStatus.output.result);
+        }
         clearTimeout(timerRef.current);
         setExecid(null);
       }
