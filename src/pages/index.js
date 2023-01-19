@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head'
 import Link from 'next/link'
 import styles from '../styles/Home.module.css'
@@ -12,6 +13,37 @@ const { publicRuntimeConfig } = getConfig();
 
 
 export default function Home() {
+
+  const [execId, setExecid] = useState(null);
+  const timerRef = useRef(null);
+
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const queryStatus = async () => {
+      const client = await clientPromise;
+      const workflowStatus = await client.workflowResource.getExecutionStatus(
+        execId,
+        true
+      );
+      if (
+        ["COMPLETED", "FAILED", "TERMINATED"].includes(workflowStatus.status)
+      ) {
+        console.log(workflowStatus);
+        clearTimeout(timerRef.current);
+        setExecid(null);
+      }
+    }
+    if (execId) {
+      timerRef.current = setInterval(() => {
+        queryStatus();
+      }, 1000);
+    }
+  }, [execId])
+
+  useEffect(() => {
+    return clearTimeout(timerRef.current);
+  }, []);
 
   // Create the client with our properties in the next file
   const clientPromise = orkesConductorClient(publicRuntimeConfig.conductor);
@@ -31,6 +63,7 @@ export default function Home() {
         // },
         correlationId: "myCoolUser",
       });
+      setExecid(executionId);
     };
     click();
   };
